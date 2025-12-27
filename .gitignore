@@ -1,0 +1,21 @@
+# Ambiente virtual
+venv/
+.env
+
+# Cache Python
+__pycache__/
+*.pyc
+
+# Banco local (não subir agora)
+*.sqlite
+*.db
+
+# VS Code
+.vscode/
+
+# Arquivos de teste
+*.xlsx
+~$*.xlsx
+
+# Frontend separado
+frontend/

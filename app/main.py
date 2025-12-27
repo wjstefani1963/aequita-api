@@ -1,0 +1,124 @@
+from fastapi import FastAPI
+from pathlib import Path
+from pydantic import BaseModel
+from datetime import date
+from datetime import datetime
+from core.calculos import calcular_valor_corrigido,indice_existe_no_periodo
+from core.calculos import calcular_indice
+import os
+from fastapi.middleware.cors import CORSMiddleware
+import sqlite3
+
+
+app = FastAPI(title="Aequita Simple API")
+
+#DB_PATH = Path(r"C:\Meus_Projetos\indices_central\indices.sqlite")
+#print("DB existe?", DB_PATH.exists())
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = BASE_DIR / "data" / "indices.sqlite"
+
+print("DB existe?", DB_PATH.exists())
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],          # depois você restringe
+    allow_credentials=True,
+    allow_methods=["*"],          # MUITO IMPORTANTE
+    allow_headers=["*"],
+)
+
+class CalculoRequest(BaseModel):
+    valor: float
+    data_inicio: date
+    data_fim: date
+    indice: str
+    aceitar_negativos: bool 
+
+class CalculoResponse(BaseModel):
+    dias: int
+    fator: float
+    valor_final: float
+
+
+
+
+
+
+@app.post("/calcular")
+def calcular(req: CalculoRequest):
+
+    #data_inicio = datetime.strptime(req.data_inicio, "%Y-%m-%d").date()
+    #data_fim = datetime.strptime(req.data_fim, "%Y-%m-%d").date()
+
+    resultado = calcular_indice(
+        req.valor,
+        req.data_inicio,
+        req.data_fim,
+        req.indice,
+        req.aceitar_negativos
+    )
+
+    return {
+        "resultado": round(resultado, 2)
+    }
+
+
+'''
+@app.post("/calcular")
+def calcular(req: CalculoRequest):
+    resultado = calcular_indice(
+        req.valor,
+        req.data_inicio,
+        req.data_fim,
+        req.indice,
+        req.aceitar_negativos
+    )
+
+
+    return {"resultado": resultado}
+
+
+@app.post("/calcular")
+def calcular(req: CalculoRequest):
+
+    if not indice_existe_no_periodo(
+        req.indice,
+        req.data_inicio,
+        req.data_fim
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="O índice selecionado não possui valores para o período informado."
+        )
+
+    resultado = calcular_indice(
+        req.valor,
+        req.data_inicio,
+        req.data_fim,
+        req.indice,
+        req.aceitar_negativos
+    )
+
+    return {"resultado": round(resultado, 2)}
+
+'''
+
+@app.get("/indices")
+def listar_indices():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT nome FROM indices ORDER BY nome")
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    indices = [row[0] for row in rows]
+
+    return {"indices": indices}
+
+
+@app.get("/")
+def home():
+    return {"status": "API Aequita no ar"}
