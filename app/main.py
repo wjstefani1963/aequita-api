@@ -16,8 +16,8 @@ app = FastAPI(title="Aequita Simple API")
 #print("DB existe?", DB_PATH.exists())
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "data" / "indices.sqlite"
 
+DB_PATH = BASE_DIR / "data" / "indices.sqlite"
 print("DB existe?", DB_PATH.exists())
 
 app.add_middleware(
@@ -122,3 +122,18 @@ def listar_indices():
 @app.get("/")
 def home():
     return {"status": "API Aequita no ar"}
+
+
+@app.get("/teste-db")
+def teste_db():
+    import sqlite3
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT nome FROM indices LIMIT 5")
+        rows = cursor.fetchall()
+        conn.close()
+        return {"primeiros_indices": [row[0] for row in rows]}
+    except Exception as e:
+        return {"erro": str(e)}

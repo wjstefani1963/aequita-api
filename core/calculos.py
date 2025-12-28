@@ -6,7 +6,11 @@ from pydantic import BaseModel
 from datetime import date
 import os
 import sqlite3
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent   # vai para a raiz do projeto
+DB_PATH = BASE_DIR / "data" / "indices.sqlite"
+print("DB existe?", DB_PATH.exists())  # só para checar se o Python encontra o arquivo
 
 def parse_currency(value_str):
     """
@@ -52,10 +56,6 @@ def calcular_fator_entre_datas(indice_nome, data_inicio, data_fim, aceitar_negat
     """
     Calcula o fator acumulado entre duas datas usando SQLite
     """
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    DB_PATH = os.path.join(BASE_DIR, "..", "indices_central", "indices.sqlite")
-
-    #DB_PATH = os.path.join(BASE_DIR, "indices_central", "indices.sqlite")
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -157,7 +157,7 @@ def calcular_fator_entre_datas(indice_nome, data_inicio, data_fim, aceitar_negat
         chave = (data_obj.year, data_obj.month)
         if chave in ajustes:
             ci = ci / ajustes[chave]
-        print(data_obj, val_ind, ci)  # debug, opciona
+        #print(data_obj, val_ind, ci)  # debug, opciona
     return ci
 
 
