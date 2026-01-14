@@ -137,3 +137,12 @@ def teste_db():
         return {"primeiros_indices": [row[0] for row in rows]}
     except Exception as e:
         return {"erro": str(e)}
+
+
+@app.get("/versao")
+def versao():
+    return {
+        "app": "aequita-api",
+        "versao": "2026-01-14",
+        "commit": "8214c44"
+    }
