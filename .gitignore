@@ -9,7 +9,7 @@ __pycache__/
 # Banco local (não subir agora)
 *.sqlite
 *.db
-!indices.sqlite
+!data/indices.sqlite
 
 # VS Code
 .vscode/
