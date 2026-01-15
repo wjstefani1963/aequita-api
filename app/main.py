@@ -8,6 +8,7 @@ from core.calculos import calcular_indice
 import os
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
+from pydantic import BaseModel, EmailStr
 
 
 app = FastAPI(title="Aequita Simple API")
@@ -19,6 +20,46 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DB_PATH = BASE_DIR / "data" / "indices.sqlite"
 print("DB existe?", DB_PATH.exists())
+
+if os.getenv("RENDER") == "true":
+    DB_LEADS = Path("/data/app.sqlite")
+else:
+    DB_LEADS = Path("data/app.sqlite")
+
+class LeadRequest(BaseModel):
+    email: EmailStr
+
+def init_db():
+    conn = sqlite3.connect(DB_LEADS)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
+
+
+from fastapi import Request, HTTPException
+
+@app.post("/lead")
+def lead(req: LeadRequest):
+    email = req.email
+    try:
+        conn = sqlite3.connect(DB_LEADS)
+        cur = conn.cursor()
+        cur.execute("INSERT OR IGNORE INTO leads (email) VALUES (?)", (email,))
+        conn.commit()
+        conn.close()
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -146,3 +187,8 @@ def versao():
         "versao": "2026-01-14",
         "commit": "8214c44"
     }
+
+
+# --- ESTA PARTE É O FINAL ---
+if __name__ == "__main__":
+    app.run(debug=True, port=8000)
