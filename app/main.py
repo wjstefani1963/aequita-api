@@ -60,6 +60,11 @@ def lead(req: LeadRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/ping")
+def ping():
+    return {"ok": True}
+
+
 
 @app.get("/leads")
 def listar_leads():
