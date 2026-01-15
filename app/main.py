@@ -26,7 +26,8 @@ if os.getenv("RENDER") == "true":
 else:
     DB_DIR = Path("data")
 
-DB_DIR.mkdir(parents=True, exist_ok=True)
+DB_DIR.mkdir(exist_ok=True)
+
 DB_LEADS = DB_DIR / "app.sqlite"
 
 class LeadRequest(BaseModel):
