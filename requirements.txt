@@ -1,5 +1,4 @@
-fastapi
-uvicorn
-pydantic
-python-multipart
-pydantic[email]
+fastapi==0.111.0
+uvicorn[standard]==0.23.2
+pydantic[email]==2.5.2
+python-multipart==0.0.6
