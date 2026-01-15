@@ -8,7 +8,7 @@ from core.calculos import calcular_indice
 import os
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
-from pydantic import BaseModel, EmailStr
+#from pydantic import BaseModel, EmailStr
 from fastapi import Request, HTTPException
 
 app = FastAPI(title="Aequita Simple API")
@@ -27,7 +27,7 @@ else:
     DB_LEADS = Path("data/app.sqlite")
 
 class LeadRequest(BaseModel):
-    email: EmailStr
+    email: str
 
 def init_db():
     conn = sqlite3.connect(DB_LEADS)
