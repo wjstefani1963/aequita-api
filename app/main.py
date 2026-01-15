@@ -9,7 +9,7 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 from pydantic import BaseModel, EmailStr
-
+from fastapi import Request, HTTPException
 
 app = FastAPI(title="Aequita Simple API")
 
@@ -45,7 +45,7 @@ def init_db():
 init_db()
 
 
-from fastapi import Request, HTTPException
+
 
 @app.post("/lead")
 def lead(req: LeadRequest):
@@ -57,6 +57,19 @@ def lead(req: LeadRequest):
         conn.commit()
         conn.close()
         return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/leads")
+def listar_leads():
+    try:
+        conn = sqlite3.connect(DB_LEADS)
+        cur = conn.cursor()
+        cur.execute("SELECT id, email, created_at FROM leads ORDER BY id DESC LIMIT 20")
+        rows = cur.fetchall()
+        conn.close()
+        return {"leads": [{"id": r[0], "email": r[1], "created_at": r[2]} for r in rows]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
