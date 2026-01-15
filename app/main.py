@@ -22,9 +22,12 @@ DB_PATH = BASE_DIR / "data" / "indices.sqlite"
 print("DB existe?", DB_PATH.exists())
 
 if os.getenv("RENDER") == "true":
-    DB_LEADS = Path("/data/app.sqlite")
+    DB_DIR = Path("/data")
 else:
-    DB_LEADS = Path("data/app.sqlite")
+    DB_DIR = Path("data")
+
+DB_DIR.mkdir(parents=True, exist_ok=True)
+DB_LEADS = DB_DIR / "app.sqlite"
 
 class LeadRequest(BaseModel):
     email: str
