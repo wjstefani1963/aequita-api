@@ -7,9 +7,11 @@ from datetime import datetime
 from core.calculos import calcular_valor_corrigido,indice_existe_no_periodo
 from core.calculos import calcular_indice
 from fastapi.middleware.cors import CORSMiddleware
-#import sqlite3
+import sqlite3
 #from pydantic import BaseModel, EmailStr
 from fastapi import Request, HTTPException
+import smtplib
+import email.message
 
 app = FastAPI(title="Aequita Simple API")
 
