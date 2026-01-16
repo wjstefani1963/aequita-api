@@ -15,7 +15,7 @@ app = FastAPI(title="Aequita Simple API")
 
 #DB_PATH = Path(r"C:\Meus_Projetos\indices_central\indices.sqlite")
 #print("DB existe?", DB_PATH.exists())
-
+'''
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DB_PATH = BASE_DIR / "data" / "indices.sqlite"
@@ -30,6 +30,7 @@ DB_DIR.mkdir(parents=True, exist_ok=True)
 
 
 DB_LEADS = DB_DIR / "app.sqlite"
+'''
 
 class LeadRequest(BaseModel):
     email: str
@@ -56,17 +57,36 @@ def startup():
 
 @app.post("/lead")
 def lead(req: LeadRequest):
-    email = req.email
+    destinatario = req.email
+    remetente = os.getenv("SMTP_USER")  # seu Gmail
+    senha = os.getenv("SMTP_PASS")      # senha de app
+
     try:
-        conn = sqlite3.connect(DB_LEADS)
-        cur = conn.cursor()
-        cur.execute("INSERT OR IGNORE INTO leads (email) VALUES (?)", (email,))
-        conn.commit()
-        conn.close()
-        return {"status": "ok"}
+        msg = email.message.Message()
+        msg["Subject"] = "Obrigado pelo seu cadastro"
+        msg["From"] = remetente
+        msg["To"] = destinatario
+
+        corpo_email = f"""
+        <p>Olá,</p>
+        <p>Recebemos seu email: {destinatario}</p>
+        <p>Obrigado por se cadastrar!</p>
+        """
+        corpo_email = corpo_email.encode("utf-8")
+        msg.add_header("Content-Type", "text/html")
+        msg.set_payload(corpo_email)
+
+        servidor = smtplib.SMTP("smtp.gmail.com", 587)
+        servidor.starttls()
+        servidor.login(remetente, senha)
+        servidor.send_message(msg)
+        servidor.quit()
+
+        return {"status": "ok", "email_enviado": destinatario}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+💡
 @app.get("/ping")
 def ping():
     return {"ok": True}
@@ -209,8 +229,8 @@ def teste_db():
 def versao():
     return {
         "app": "aequita-api",
-        "versao": "2026-01-15",
-        "commit": "8214c44"
+        "versao": "2026-01-16",
+        "commit": "1.1"
     }
 
 
