@@ -8,8 +8,13 @@ import os
 import sqlite3
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent   # vai para a raiz do projeto
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "data" / "indices.sqlite"
+
+
+#BASE_DIR = Path(__file__).resolve().parent.parent   # vai para a raiz do projeto
+#DB_PATH = BASE_DIR / "data" / "indices.sqlite"
 print("DB existe?", DB_PATH.exists())  # só para checar se o Python encontra o arquivo
 
 def parse_currency(value_str):

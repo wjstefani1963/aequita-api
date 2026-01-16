@@ -14,7 +14,7 @@ import smtplib
 import email.message
 
 app = FastAPI(title="Aequita Simple API")
-
+'''
 BASE_DIR = Path(__file__).resolve().parent
 
 if os.getenv("RENDER"):
@@ -23,6 +23,14 @@ else:
     DB_PATH = BASE_DIR / "data" / "indices.sqlite"
 #DB_PATH = Path(r"C:\Meus_Projetos\indices_central\indices.sqlite")
 #print("DB existe?", DB_PATH.exists())
+'''
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = BASE_DIR / "data" / "indices.sqlite"
+
+
+
 '''
 BASE_DIR = Path(__file__).resolve().parent.parent
 
