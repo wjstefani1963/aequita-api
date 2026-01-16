@@ -1,11 +1,11 @@
+from pathlib import Path
+import os
 from fastapi import FastAPI
-#from pathlib import Path
 from pydantic import BaseModel
 from datetime import date
 from datetime import datetime
 from core.calculos import calcular_valor_corrigido,indice_existe_no_periodo
 from core.calculos import calcular_indice
-import os
 from fastapi.middleware.cors import CORSMiddleware
 #import sqlite3
 #from pydantic import BaseModel, EmailStr
@@ -13,6 +13,12 @@ from fastapi import Request, HTTPException
 
 app = FastAPI(title="Aequita Simple API")
 
+BASE_DIR = Path(__file__).resolve().parent
+
+if os.getenv("RENDER"):
+    DB_PATH = Path("/data/indices.sqlite")
+else:
+    DB_PATH = BASE_DIR / "data" / "indices.sqlite"
 #DB_PATH = Path(r"C:\Meus_Projetos\indices_central\indices.sqlite")
 #print("DB existe?", DB_PATH.exists())
 '''
@@ -236,6 +242,3 @@ def versao():
     }
 
 
-# --- ESTA PARTE É O FINAL ---
-if __name__ == "__main__":
-    app.run(debug=True, port=8000)
