@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pathlib import Path
+#from pathlib import Path
 from pydantic import BaseModel
 from datetime import date
 from datetime import datetime
@@ -7,7 +7,7 @@ from core.calculos import calcular_valor_corrigido,indice_existe_no_periodo
 from core.calculos import calcular_indice
 import os
 from fastapi.middleware.cors import CORSMiddleware
-import sqlite3
+#import sqlite3
 #from pydantic import BaseModel, EmailStr
 from fastapi import Request, HTTPException
 
@@ -94,7 +94,7 @@ def ping():
     return {"ok": True}
 
 
-
+'''
 @app.get("/leads")
 def listar_leads():
     try:
@@ -106,7 +106,7 @@ def listar_leads():
         return {"leads": [{"id": r[0], "email": r[1], "created_at": r[2]} for r in rows]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+'''
 
 app.add_middleware(
     CORSMiddleware,
