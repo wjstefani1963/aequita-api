@@ -35,6 +35,7 @@ DB_LEADS = DB_DIR / "app.sqlite"
 class LeadRequest(BaseModel):
     email: str
 
+'''
 def init_db():
     conn = sqlite3.connect(DB_LEADS)
     cur = conn.cursor()
@@ -52,6 +53,7 @@ def init_db():
 def startup():
     init_db()
 
+'''
 
 
 
