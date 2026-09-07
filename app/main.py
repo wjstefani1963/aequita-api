@@ -12,8 +12,23 @@ import sqlite3
 from fastapi import Request, HTTPException
 import smtplib
 import email.message
+from dotenv import load_dotenv
+load_dotenv()
+import os
+import psycopg2
+from core.admin_indices import router as admin_router
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+'''
+conn = psycopg2.connect(DATABASE_URL)
+print("Postgres conectado com sucesso")
+conn.close()
+'''
 
 app = FastAPI(title="Aequita Simple API")
+
+app.include_router(admin_router)
 '''
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -210,7 +225,10 @@ def calcular(req: CalculoRequest):
 
 @app.get("/indices")
 def listar_indices():
-    conn = sqlite3.connect(DB_PATH)
+    #conn = sqlite3.connect(DB_PATH)
+    #cursor = conn.cursor()
+
+    conn = psycopg2.connect(os.getenv("DATABASE_URL"))
     cursor = conn.cursor()
 
     cursor.execute("SELECT nome FROM indices ORDER BY nome")
@@ -219,7 +237,7 @@ def listar_indices():
     conn.close()
 
     indices = [row[0] for row in rows]
-
+    print(indices)
     return {"indices": indices}
 
 

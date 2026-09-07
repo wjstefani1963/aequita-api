@@ -7,15 +7,26 @@ from datetime import date
 import os
 import sqlite3
 from pathlib import Path
-
+import psycopg2
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "data" / "indices.sqlite"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    DB_PATH = DATABASE_URL
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    DB_PATH = BASE_DIR / "data" / "indices.sqlite"
+
+
+
+#DB_PATH = BASE_DIR / "data" / "indices.sqlite"
 
 
 #BASE_DIR = Path(__file__).resolve().parent.parent   # vai para a raiz do projeto
 #DB_PATH = BASE_DIR / "data" / "indices.sqlite"
-print("DB existe?", DB_PATH.exists())  # só para checar se o Python encontra o arquivo
+if not DATABASE_URL:
+    print("DB existe?", DB_PATH.exists())  # só para checar se o Python encontra o arquivo
 
 def parse_currency(value_str):
     """
@@ -58,15 +69,18 @@ def meses_decimais(data_inicio, data_fim):
     return meses_dec
 
 def calcular_fator_entre_datas(indice_nome, data_inicio, data_fim, aceitar_negativos):
-    """
-    Calcula o fator acumulado entre duas datas usando SQLite
-    """
-
-    conn = sqlite3.connect(DB_PATH)
+    conn = psycopg2.connect(os.getenv("DATABASE_URL")) 
     cursor = conn.cursor()
 
+    #conn = sqlite3.connect(DB_PATH)
+
+    
+    
+    #cursor = conn.cursor()
+
     cursor.execute(
-        "SELECT id FROM indices WHERE nome = ?",
+        "SELECT id FROM indices WHERE nome = %s",
+
         (indice_nome,)
     )
     row = cursor.fetchone()
@@ -91,9 +105,9 @@ def calcular_fator_entre_datas(indice_nome, data_inicio, data_fim, aceitar_negat
     cursor.execute("""
         SELECT data, valor
         FROM valores
-        WHERE indice_id = ?
-        AND data >= ?
-        AND data <= ?
+        WHERE indice_id = %s
+        AND data >= %s
+        AND data <= %s
         ORDER BY data
     """, (indice_id, primeiro_dia_mes, data_fim))
     valores = cursor.fetchall()
@@ -112,8 +126,10 @@ def calcular_fator_entre_datas(indice_nome, data_inicio, data_fim, aceitar_negat
     # --- mês inicial parcial se data_inicio não tiver registro no banco ---
     if valores:
         primeiro_valor_data, primeiro_valor = valores[0]
-        primeiro_valor_data_obj = datetime.strptime(primeiro_valor_data, "%Y-%m-%d")
-        if data_inicio < primeiro_valor_data_obj.date():
+        #primeiro_valor_data_obj = datetime.strptime(primeiro_valor_data, "%Y-%m-%d")
+        primeiro_valor_data_obj = primeiro_valor_data
+
+        if data_inicio < primeiro_valor_data_obj:
             dias_no_mes = calendar.monthrange(data_inicio.year, data_inicio.month)[1]
             proporcao = (dias_no_mes - data_inicio.day + 1) / dias_no_mes
             val_ind = float(primeiro_valor)
@@ -124,7 +140,8 @@ def calcular_fator_entre_datas(indice_nome, data_inicio, data_fim, aceitar_negat
 
 
     for i,(data_str, valor) in enumerate(valores):
-        data_obj = datetime.strptime(data_str, "%Y-%m-%d")
+        #data_obj = datetime.strptime(data_str, "%Y-%m-%d")
+        data_obj = data_str
         val_ind = float(valor)
 
         # regra principal
@@ -166,56 +183,6 @@ def calcular_fator_entre_datas(indice_nome, data_inicio, data_fim, aceitar_negat
     return ci
 
 
-'''
-def calcular_fator_entre_datas(indice_nome, data_inicio, data_fim, aceitar_negativos):
-    """
-    Calcula o fator acumulado entre duas datas (como na funÃ§Ã£o original)
-    """
-    indice = Indice.query.filter_by(nome=indice_nome).first()
-    if not indice:
-        return 1.0
-
-    valores = Valor.query.filter(
-        Valor.indice_id == indice.id,
-        Valor.data >= data_inicio,
-        Valor.data <= data_fim
-    ).order_by(Valor.data).all()
-    #print(aceitar_negativos)
-    # Ajustes por mês/ano
-    ajustes = {
-        (1986, 2): 1000,   # fevereiro/1986
-        (1989, 1): 1000,   # janeiro/1989
-        (1993, 8): 1000,   # agosto/1993
-        (1994, 7): 2750,   # julho/1994
-    }
-
-
-    ci = 1.0
-    for v in valores:
-        #print(f"DEBUG â†’ {v.data} | {v.valor!r} | tipo={type(v.valor)}")
-            # Converte a string para datetime
-        if isinstance(v.data, str):
-            data_obj = datetime.strptime(v.data, "%Y-%m-%d")
-        else:
-            data_obj = v.data  # já é datetime
-
-        val_ind = float(v.valor)
-        
-        if aceitar_negativos or val_ind > 0:
-            ci += round(ci * val_ind / 100, 4)
-
-        # mês e ano da linha atual
-        #chave = (v.data.year, v.data.month)
-        chave = (data_obj.year, data_obj.month)
-        # Verifica se precisa aplicar divisor
-        if chave in ajustes:
-            divisor = ajustes[chave]
-            ci = ci / divisor
-
-
-
-    return ci
-'''
 
 def calcular_indice(valor_original, data_inicio, data_fim, indice_nome, aceitar_negativos):
     try:
@@ -296,7 +263,11 @@ def calcular_valor_corrigido(valor, data_inicio, data_fim, indice, aceitar_negat
 
 
 def indice_existe_no_periodo(indice: str, data_inicio: str, data_fim: str) -> bool:
-    conn = sqlite3.connect(DB_PATH)
+    if DATABASE_URL:  # Postgres (Neon/Render)
+        conn = psycopg2.connect(DATABASE_URL)
+    else:  # SQLite (local)
+        conn = sqlite3.connect(DB_PATH)
+
     cursor = conn.cursor()
 
     cursor.execute("""
